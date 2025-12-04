@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"Supabase-Warung": {
+			"url": "https://mcp.supabase.com/mcp?project_ref=tuehgkscbhwmtyotfmer",
+			"type": "http"
+		}
+	},
+	"inputs": []
+}

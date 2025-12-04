@@ -3,7 +3,8 @@
     "target": "es2017",
     "lib": [
       "es2017",
-      "esnext.asynciterable"
+      "esnext.asynciterable",
+      "dom"
     ],
     "typeRoots": [
       "./node_modules/@types",
