@@ -1,7 +1,7 @@
 import { Container } from 'typedi';
-import mongoose from 'mongoose';
 import { IUser } from '@/interfaces/IUser';
 import { Logger } from 'winston';
+import UserRepository from '@/repositories/userRepository';
 
 /**
  * Attach user to req.currentUser
@@ -12,12 +12,12 @@ import { Logger } from 'winston';
 const attachCurrentUser = async (req, res, next) => {
   const Logger : Logger = Container.get('logger');
   try {
-    const UserModel = Container.get('userModel') as mongoose.Model<IUser & mongoose.Document>;
-    const userRecord = await UserModel.findById(req.token._id);
+    const userRepository = Container.get('userRepository') as UserRepository;
+    const userRecord = await userRepository.findById(req.token.id);
     if (!userRecord) {
       return res.sendStatus(401);
     }
-    const currentUser = userRecord.toObject();
+    const currentUser = { ...userRecord };
     Reflect.deleteProperty(currentUser, 'password');
     Reflect.deleteProperty(currentUser, 'salt');
     req.currentUser = currentUser;

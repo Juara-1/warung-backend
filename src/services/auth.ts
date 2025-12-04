@@ -11,7 +11,7 @@ import events from '@/subscribers/events';
 @Service()
 export default class AuthService {
   constructor(
-    @Inject('userModel') private userModel: Models.UserModel,
+    @Inject('userRepository') private userRepository,
     private mailer: MailerService,
     @Inject('logger') private logger,
     @EventDispatcher() private eventDispatcher: EventDispatcherInterface,
@@ -41,7 +41,7 @@ export default class AuthService {
       this.logger.silly('Hashing password');
       const hashedPassword = await argon2.hash(userInputDTO.password, { salt });
       this.logger.silly('Creating user db record');
-      const userRecord = await this.userModel.create({
+      const userRecord = await this.userRepository.create({
         ...userInputDTO,
         salt: salt.toString('hex'),
         password: hashedPassword,
@@ -63,7 +63,7 @@ export default class AuthService {
        * that transforms data from layer to layer
        * but that's too over-engineering for now
        */
-      const user = userRecord.toObject();
+      const user = { ...userRecord };
       Reflect.deleteProperty(user, 'password');
       Reflect.deleteProperty(user, 'salt');
       return { user, token };
@@ -74,7 +74,7 @@ export default class AuthService {
   }
 
   public async SignIn(email: string, password: string): Promise<{ user: IUser; token: string }> {
-    const userRecord = await this.userModel.findOne({ email });
+    const userRecord = await this.userRepository.findByEmail(email);
     if (!userRecord) {
       throw new Error('User not registered');
     }
@@ -88,7 +88,7 @@ export default class AuthService {
       this.logger.silly('Generating JWT');
       const token = this.generateToken(userRecord);
 
-      const user = userRecord.toObject();
+      const user = { ...userRecord };
       Reflect.deleteProperty(user, 'password');
       Reflect.deleteProperty(user, 'salt');
       /**
@@ -114,10 +114,10 @@ export default class AuthService {
      * because it doesn't have _the secret_ to sign it
      * more information here: https://softwareontheroad.com/you-dont-need-passport
      */
-    this.logger.silly(`Sign JWT for userId: ${user._id}`);
+    this.logger.silly(`Sign JWT for userId: ${user.id}`);
     return jwt.sign(
       {
-        _id: user._id, // We are gonna use this in the middleware 'isAuth'
+        id: user.id, // We are gonna use this in middleware 'isAuth'
         role: user.role,
         name: user.name,
         exp: exp.getTime() / 1000,

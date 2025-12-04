@@ -2,8 +2,8 @@ import { Container } from 'typedi';
 import { EventSubscriber, On } from 'event-dispatch';
 import events from './events';
 import { IUser } from '@/interfaces/IUser';
-import mongoose from 'mongoose';
 import { Logger } from 'winston';
+import UserRepository from '@/repositories/userRepository';
 
 @EventSubscriber()
 export default class UserSubscriber {
@@ -12,29 +12,28 @@ export default class UserSubscriber {
    * save the last time a user signin, your boss will be pleased.
    *
    * Altough it works in this tiny toy API, please don't do this for a production product
-   * just spamming insert/update to mongo will kill it eventualy
+   * just spamming insert/update to database will kill it eventually
    *
    * Use another approach like emit events to a queue (rabbitmq/aws sqs),
    * then save the latest in Redis/Memcache or something similar
    */
   @On(events.user.signIn)
-  public onUserSignIn({ _id }: Partial<IUser>) {
+  public onUserSignIn({ id }: Partial<IUser>) {
     const Logger: Logger = Container.get('logger');
 
     try {
-      const UserModel = Container.get('UserModel') as mongoose.Model<IUser & mongoose.Document>;
-
-      UserModel.update({ _id }, { $set: { lastLogin: new Date() } });
+      const userRepository = Container.get('userRepository') as UserRepository;
+      userRepository.update(id, { lastLogin: new Date() });
     } catch (e) {
       Logger.error(`🔥 Error on event ${events.user.signIn}: %o`, e);
 
-      // Throw the error so the process die (check src/app.ts)
+      // Throw error so the process die (check src/app.ts)
       throw e;
     }
   }
 
   @On(events.user.signUp)
-  public onUserSignUp({ name, email, _id }: Partial<IUser>) {
+  public onUserSignUp({ name, email, id }: Partial<IUser>) {
     const Logger: Logger = Container.get('logger');
 
     try {
