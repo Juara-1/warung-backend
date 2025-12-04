@@ -78,7 +78,6 @@ You can use Gitpod for the one click online setup. With a single click it will l
 - [ ] Unit tests examples
 - [ ] [Cluster mode](https://softwareontheroad.com/nodejs-scalability-issues?utm_source=github&utm_medium=readme)
 - [x] The logging _'layer'_
-- [ ] Add agenda dashboard
 - [x] Continuous integration with CircleCI 😍
 - [ ] Deploys script and docs for AWS Elastic Beanstalk and Heroku
 - [ ] Integration test with newman 😉

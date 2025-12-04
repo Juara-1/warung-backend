@@ -37,7 +37,6 @@ const authService = new AuthService();
 - `'supabase'` → Supabase client instance
 - `'userRepository'` → User repository for database access
 - `'logger'` → Winston logger instance
-- `'agendaInstance'` → Job scheduler
 - `'emailClient'` → Mailgun client
 
 ## Supabase Client Pattern
@@ -224,27 +223,21 @@ Never use relative paths like `../../config`.
 
 ## Loader System
 
-App initialization happens in 4 phases (`src/loaders/index.ts`):
+App initialization happens in 3 phases (`src/loaders/index.ts`):
 1. **supabase** - Initialize Supabase client connection
 2. **dependencyInjector** - Register repositories/services in TypeDI Container
-3. **jobs** - Start Agenda.js background jobs (uses MongoDB for job queue only)
-4. **express** - Configure middleware and routes
+3. **express** - Configure middleware and routes
 
 **Critical**: Import `'reflect-metadata'` first in `src/app.ts` for decorators to work.
 
-## Background Jobs
+## Background Tasks
 
-Use Agenda.js for scheduled/background tasks:
-1. Define job handlers in `src/jobs/` (must have `.handler(job, done)` method)
-2. Register in `src/loaders/jobs.ts` with `agenda.define()`
-3. Trigger with `agenda.now('job-name', { data })`
+For scheduled/background tasks, use event-driven architecture with subscribers:
+1. Define events in `src/subscribers/events.ts`
+2. Dispatch events from services using `this.eventDispatcher.dispatch()`
+3. Handle events in subscribers with `@On(eventName)` decorator
 
-**Note**: Agenda.js uses MongoDB for job queue storage only. Configure separate MongoDB connection for job persistence:
-```typescript
-const agenda = new Agenda({ db: { address: process.env.MONGODB_URI_JOBS } });
-```
-
-Jobs access services via Container.get().
+This approach keeps the application stateless and avoids external job queue dependencies.
 
 ## Feature Implementation Checklist
 
@@ -259,7 +252,7 @@ When implementing new features, follow this order:
 7. **Add Events** in `src/subscribers/events.ts` if needed
 8. **Create Routes** in `src/api/routes/` with Celebrate validation
 9. **Register Routes** in `src/api/index.ts`
-10. **Add Background Jobs** in `src/jobs/` if async processing needed
+10. **Add Event Subscribers** in `src/subscribers/` if async processing needed
 
 ## Development Commands
 
@@ -603,7 +596,7 @@ export class DebtService {
 - ❌ Don't instantiate services with `new` keyword
 - ❌ Don't forget `@Service()` decorator on service classes
 - ❌ Don't use relative imports when `@/` alias exists
-- ❌ Don't forget to call `done()` in Agenda job handlers
+
 - ❌ Don't bypass Row Level Security - pass user JWT to queries
 - ❌ Don't use string concatenation for SQL - use Supabase query builder
 - ❌ Don't store API keys in code - use environment variables
