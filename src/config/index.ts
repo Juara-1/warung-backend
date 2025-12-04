@@ -17,9 +17,12 @@ export default {
   port: parseInt(process.env.PORT, 10),
 
   /**
-   * That long string from mlab
+   * Supabase configuration
    */
-  databaseURL: process.env.MONGODB_URI,
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    anonKey: process.env.SUPABASE_ANON_KEY,
+  },
 
   /**
    * Your secret sauce
@@ -35,22 +38,6 @@ export default {
   },
 
   /**
-   * Agenda.js stuff
-   */
-  agenda: {
-    dbCollection: process.env.AGENDA_DB_COLLECTION,
-    pooltime: process.env.AGENDA_POOL_TIME,
-    concurrency: parseInt(process.env.AGENDA_CONCURRENCY, 10),
-  },
-
-  /**
-   * Agendash config
-   */
-  agendash: {
-    user: 'agendash',
-    password: '123456'
-  },
-  /**
    * API configs
    */
   api: {
@@ -62,6 +49,6 @@ export default {
   emails: {
     apiKey: process.env.MAILGUN_API_KEY,
     apiUsername: process.env.MAILGUN_USERNAME,
-    domain: process.env.MAILGUN_DOMAIN
-  }
+    domain: process.env.MAILGUN_DOMAIN,
+  },
 };
